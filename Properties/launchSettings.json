@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "EntityGen": {
+      "commandName": "Project",
+      "commandLineArgs": "Vendedor"
+    }
+  }
+}
