@@ -143,7 +143,7 @@ namespace EntityGen
                     StringBuilder model = new StringBuilder();
 
                     model.Append($"[Table(\u0022{tableName}\u0022)]\n" +
-                                 $"public virtual class {tableName.Replace("_", "")}\n" +
+                                 $"public partial class {tableName.Replace("_", "")}\n" +
                                  $"{{\n");
 
                     data.ForEach(field =>
