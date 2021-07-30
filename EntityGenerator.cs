@@ -101,7 +101,8 @@ namespace EntityGen
             catch(Exception)
             {
                 Console.WriteLine($"Não foi possivel gerar o modelo :(");
-                return "";
+                Environment.Exit(-1);
+                return String.Empty;
             }
         }
 
@@ -112,21 +113,22 @@ namespace EntityGen
                 if (string.IsNullOrEmpty(model))
                     return;
 
-                string fileName = $"{TableName.Replace("_", "")}.cs";
+                string fileName = $"{EntityUtils.CaptalizeString(TableName)}.cs";
                 string filePath = $@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\Desktop\{fileName}";
 
                 if (!File.Exists(filePath))
                 {
-                    using (var creator = File.Create(filePath))
+                    await using (var creator = File.Create(filePath))
                         await creator.DisposeAsync();
 
-                    using (StreamWriter writer = new StreamWriter(filePath))
+                    await using (StreamWriter writer = new StreamWriter(filePath))
                         await writer.WriteLineAsync(model);
                 }
             }
-            catch (Exception)
+            catch
             {
                 Console.WriteLine($"Não foi possivel criar o arquivo :(");
+                Environment.Exit(-1);
             }
         }
 
@@ -137,36 +139,36 @@ namespace EntityGen
                 StringBuilder model = new StringBuilder();
 
                 model.Append($"[Table(\u0022{TableName}\u0022)]\n" +
-                             $"public partial class {TableName.Replace("_", "")}\n" +
+                             $"public partial class {EntityUtils.CaptalizeString(TableName)}\n" +
                              $"{{\n");
 
                 data.ForEach(field =>
                 {
-                    string isKey = field[field.Count() - 1] == "yes" ? "[Key]" : string.Empty;
+                    string isSmallDateTime = field[1] == "smalldatetime"
+                        ? ", TypeName = \u0022smalldatetime\u0022"
+                        : string.Empty;
+                    string isKey = field[^1] == "yes" ? "[Key]" : string.Empty;
                     string nullable = (field[6].Trim() == "yes" && DataTypes[field[1].Trim()]?.ToString() != "string") ? "?" : string.Empty;
-                    string capitalizedString = (field[0].Substring(0, 1).ToUpper() + field[0].Substring(1)).Replace("_", "");
                     string stringLength = (DataTypes[field[1].Trim()]?.ToString() == "string" && field[3].Trim() != "max") ? $"[StringLength({field[3].Trim()})]" : string.Empty;
 
                     if (!string.IsNullOrEmpty(isKey))
                         model.Append($"     {isKey}\n");
 
-                    model.Append($"     [Column(\u0022{field[0]}\u0022)]\n");
+                    model.Append($"     [Column(\u0022{field[0]}\u0022{isSmallDateTime})]\n");
 
                     if (!string.IsNullOrEmpty(stringLength))
                         model.Append($"     {stringLength}\n");
 
-                    model.Append($"     public {DataTypes[field[1].Trim()]}{nullable} {capitalizedString} {{ get; set; }}\n");
+                    model.Append($"     public {DataTypes[field[1].Trim()]}{nullable} {EntityUtils.CaptalizeString(field[0])} {{ get; set; }}\n");
                 });
 
                 model.Append($"}}\n");
-
-                Console.WriteLine(model);
-                return "";
+                return model.ToString();
             }
-            catch(Exception)
+            catch
             {
                 Console.WriteLine($"Erro gerado na criação do modelo :(");
-                return "";
+                return String.Empty;
             }
         }
     }

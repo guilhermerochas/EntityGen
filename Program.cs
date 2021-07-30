@@ -11,22 +11,25 @@ namespace EntityGen
     {
         static async Task Main(string[] args)
         {
-            await Parser.Default.ParseArguments<Options>("-t haha".Split(" "))
+            await Parser.Default.ParseArguments<Options>(args)
                 .WithParsedAsync(async opts =>
                 {
+                    var writer = Console.Error;
+                    
                     if (!File.Exists(opts.Path))
                     {
-                        Console.Write("Path to connection file not found");
+                        await writer.WriteLineAsync("Path to connection file not found");
+                        return;
                     }
 
-                    String fileContent;
+                    string fileContent;
 
                     using (var reader = new StreamReader(opts.Path))
                         fileContent = await reader.ReadToEndAsync();
 
                     if (string.IsNullOrEmpty(fileContent))
                     {
-                        Console.WriteLine("not able to get the file content");
+                        await writer.WriteLineAsync("not able to get the file content");
                         return;
                     }
 
@@ -34,13 +37,12 @@ namespace EntityGen
 
                     if (conn == null)
                     {
-                        var writer = Console.Error;
                         await writer.WriteLineAsync("Not able to parse connection file");
                         return;
                     }
 
                     EntityGenerator generator = new EntityGenerator(conn);
-                    await generator.CreateFileOnSystem(generator.GenerateEntity("USUARIOS_ETRACKING"));
+                    await generator.CreateFileOnSystem(generator.GenerateEntity(opts.TableName));
                 });
         }
     }

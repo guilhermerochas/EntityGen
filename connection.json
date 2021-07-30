@@ -1,0 +1,6 @@
+{
+    "database": "MyDatabase",
+    "user_id": "user",
+    "password": "1234",
+    "server": "127.0.0.1,1499"
+}
